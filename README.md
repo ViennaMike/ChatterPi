@@ -19,25 +19,16 @@ A few years ago, Steve Bjork from Haunt Hackers combined dedicated hardware with
 It occurred to me that with current single board computer capabilities and powerful software libraries, it should be possible to incorporate most of the best features of all of these into a single, software-based system running on a Raspberry Pi. The result is ChatterPi. ChatterPi was developed from scratch using the Python language, but ideas for capabilities and features were freely borrowed from previous audio servo controller projects.
 
 # Features
+ChaterPi includes the following features
 
-ChatterPI is designed to be extremely powerful and flexible without requiring the user to modify any of the code (although advanced users can certainly do that as well). Table 1 compares the current capabilities of ChatterPi with other audio servo controllers. The full range of capabilities and options are described in the Operations subsection.
+- Audio signal volume controls servo
+- Can be started by an external trigger, such as a PIR motion detector
+- Can be set to start periodically via an internal timer
+- Audio can be from wav files or external input
+- Can send an output trigger to start another device when it is triggered
+- Output to light LED "eyes" (e.g., for a skull)
 
-_Table 1. Feature comparison of ChatterPi and other audio servo controllers_
-
-|
- | **Cowlacious Scary Terry Board** | **Original Jawduino** | **Wee Little Talker** | **ChatterPi** |
-| --- | --- | --- | --- | --- |
-| **Audio signal controls servo** |  |  |  |  |
-| **External Trigger** |  | **X** |  |  |
-| **Timer Trigger** | **X** | **X** | **X** |  |
-| **File or ext. audio input** |  | **external only** |  |  |
-| **Control Levels** | **2** | **4** | **~256** | **4** |
-| **Bandwidth Filter** | **X** | **X** |  |  |
-| **Plays &quot;ambient&quot; sound files** | **X** | **X** |  | **Planned** |
-| **Automatic &quot;Gain Control&quot;** | **X** | **X** |  | **Planned** |
-| **Trigger Out** |  | **X** | **X** |  |
-| **Control LED &quot;eyes&quot;** |  | **X** |  |  |
-| **Settings** | **Few (control knobs)** | **Requires software edit** | **Comprehensive voice menu** | **Config file (GUI planned)** |
+Additional features are planned. 
 
 # Software Overview
 
@@ -69,24 +60,12 @@ In addition to the Raspberry Pi, you&#39;ll need a USB sound card. This is neede
 
 That&#39;s all you need for the audio servo controller. Of course, you&#39;ll need a power supply and a servo that you want to control, such as a servo-equipped talking skull, and a passive infrared sensor (PIR) if you want to trigger your prop using one. I used this one ([https://www.parallax.com/product/555-28027](https://www.parallax.com/product/555-28027)) from Parallax for development, as I had a spare one already. ChatterPi can also be set to trigger off of a repeating timer or to just turn on and run if you don&#39;t want to use an external sensor.
 
-Figure 1 shows a test bench setup for testing operation. The Red LED is attached to the &quot;TRIGGER\_OUT&quot; pin for testing purposes. It can be moved or another LED and resistor attached to the &quot;EYES\_PIN&quot; to test that feature. The TRIGGER\_OUT pin goes high for 0.5 seconds when the controller is triggered. This can be used to trigger another prop or controller. The EYES\_PIN stays high for as long as the audio plays.
-
-![](RackMultipart20200609-4-18dpyhq_html_24525f512de93a81.png)
-
-_Figure 1. A layout for fully testing the ChatterPi_
-
 The default PIN selection (which can be changed in the config.ini file) are:
 
 - Jaw servo: 18
 - PIR input trigger: 23
 - Trigger out: 16
 - Eyes: 25
-
-Figure 2 is a photograph of my test setup. The placement of the wiring on the breadboard is slightly different because I was using it to test a variety of items and also a 3-wire servo controller wire, but the schematic connections are identical.
-
-![](RackMultipart20200609-4-18dpyhq_html_4140362e2bbfc2a6.jpg)
-
-_Figure 2. A picture of the test seup used for development_
 
 ## Software Installation and Setup
 
@@ -206,17 +185,6 @@ EYES may be set to ON or OFF, to control whether or not the EYES\_PIN is set hig
 
 TRIGGER\_OUT may be set to ON or OFF to control whether or not the TRIGGER\_OUT\_PIN is set to high for 0.5 seconds when the prop is triggered. This can be used to trigger another device or prop.
 
-The effects of the SOURCE and PROP\_TRIGGER selections are summarized in Table 2.
-
-_Table 2. Behavior is Dependent Upon SOURCE and PROP\_TRIGGER Settings_
-
-|
- | **PIR** | **TIMER** | **START** |
-| --- | --- | --- | --- |
-| **FILES** | Audio files and servo control starts when trigger goes to high, stays active until the audio file ends.Eyes, if ON, light up while active. TRIGGER\_OUT, if ON, goes high for 0.5 seconds at start of each activation. | Audio external input and servo control starts time expires, stays active until the audio file ends. Then the timer is restarted.Eyes, if ON, light up while active. TRIGGER\_OUT, if ON, goes high for 0.5 seconds at start of each activation. | N/A. Will cause an error |
-| **MICROPHONE** | Audio external input and servo control starts when trigger goes to high, stays on for length of time set by the MIC\_TIME parameter (in seconds)Eyes, if ON, light up while active. TRIGGER\_OUT, if ON, goes high for 0.5 seconds at start of each activation. | Audio external input and servo control starts when trigger goes to high, stays on for length of time set by the MIC\_TIME parameter (in seconds). Then the timer is restarted.Eyes, if ON, light up while active. TRIGGER\_OUT, if ON, goes high for 0.5 seconds at start of each activation. | Audio external input and servo control starts as soon as ChatterPi starts running and stays active until the program is terminated.Eyes, if ON, light up the entire time. TRIGGER\_OUT, if ON, goes high for 0.5 seconds at start of the program.
- |
-
 Unless you are using the pins for some other purpose, it is fine to leave EYES and TRIGGER\_OUT set to ON, even if you are not using them.
 
 [PINS]
@@ -253,9 +221,6 @@ Beyond the next release, there are several items on the added capabilities list 
 
 The code is open source and published on GitHub ([https://github.com/ViennaMike/ChatterPi](https://github.com/ViennaMike/ChatterPi)), and I would welcome anyone who wanted to work on adding any of these advanced features.
 
-# Bug Reporting
-
-To report a bug, make a suggestion, or ask a question, please go to the GitHub repository for the project ([https://github.com/ViennaMike/ChatterPi](https://github.com/ViennaMike/ChatterPi)) and open an Issue. To do so, first click on the issues tab, and then use the green &quot;New Issue&quot; button. It&#39;s a good idea to first browse through or search other reported issues to see if someone has already reported the same issue or asked the same question. You can then add comments or suggestions to existing issues, rather than opening a new, duplicative issue.
 
 
 
