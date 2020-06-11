@@ -6,7 +6,7 @@ Mike McGurrin
 
 ChatterPi is a software package that turns a Raspberry Pi into an audio servo controller. In other words, the Pi outputs commands to control a servo based on the volume of the audio input. The input can be either stored audio files (in either mono or stereo .wav format) or from an external source, such as a microphone or line level input. One of the uses is to drive animatronic props, such as a skull or a talking bird.
 
-See the documentation for full details on how to install, configure, and run. 
+See the documentation for additional information.
 
 # Background: A Brief History of Talking Skull Control
 
