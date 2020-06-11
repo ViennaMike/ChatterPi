@@ -219,7 +219,7 @@ Beyond the next release, there are several items on the added capabilities list 
 - Add the ability to use .mp3 files. Simply playing MP3 files on a Raspberry Pi is easy, but they must be processed in real-time as a stream to drive the servo controller.
 - Use the timer function in PIR mode as a delay before re-triggering is allowed.
 
-The code is open source and published on GitHub ([https://github.com/ViennaMike/ChatterPi](https://github.com/ViennaMike/ChatterPi)), and I would welcome anyone who wanted to work on adding any of these advanced features.
+I would welcome anyone who wanted to work on adding any of these advanced features.
 
 
 
