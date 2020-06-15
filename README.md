@@ -101,7 +101,8 @@ $ sudo apt install pigpio
 
 $ sudo systemctl enable pigpiod
 
-The first command downloads and install PiGPIO, while the second command ensures that it starts running in the background whenever the Pi starts.
+$ sudo apt-get install python3-pigpio
+The first command downloads and install PiGPIO, while the second command ensures that it starts running in the background whenever the Pi starts. The 3rd command loads the required python package. 
 
 To install PortAudio:
 
@@ -127,7 +128,9 @@ Do not set the microphone input or speaker output levels too high, as you may ge
 
 If your USB card does not show up, then that card does not have hardware support. Google &quot;raspberry pi software volume control&quot; to find out how to control the volume via the command line.
 
-_Congratulations, yo_ur ChatterPi is now all setup and ready for use!
+Last step: reboot your Pi to make sure all the changes take effect.
+
+_Congratulations, your ChatterPi is now all setup and ready for use!
 
 ## Operation
 
