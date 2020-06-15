@@ -2,6 +2,8 @@
 Flexible Audio Servo Controller using Raspberry Pi (for talking skulls, etc.)
 Mike McGurrin
 
+Developed and tested on a Raspberry Pi Model 3 A+. I don't know if it will run on a Pi 2. It does not run correctly on a Pi Zero. (the servo will move, but the audio will not usually play. I suspect it simply isn't powerful enough to keep up). 
+
 # Introduction
 
 ChatterPi is a software package that turns a Raspberry Pi into an audio servo controller. In other words, the Pi outputs commands to control a servo based on the volume of the audio input. The input can be either stored audio files (in either mono or stereo .wav format) or from an external source, such as a microphone or line level input. One of the uses is to drive animatronic props, such as a skull or a talking bird.
@@ -54,7 +56,7 @@ This section describes how to set up and install both the hardware and software 
 
 ## Hardware
 
-The software was developed on a Raspberry Pi 3 Model A+. It should certainly run on a Pi 3B+ or a Pi 4. I plan on testing it on a Pi Zero W, but have not done so yet.
+The software was developed on a Raspberry Pi 3 Model A+. It should certainly run on a Pi 3B+ or a Pi 4. I don't know about a Pi 2, and it does NOT run correctly on a Pi Zero. 
 
 In addition to the Raspberry Pi, you&#39;ll need a USB sound card. This is needed for several reasons. First, if you plan to use an external sound source, you need a way to get audio into your Pi. Second, besides not producing very good sound, the audio out connector may share timing with the Pulse Width Modulation (PWM) code that is needed to drive the servo, creating conflicts. Use of an inexpensive USB sound card solves both issues. I&#39;ve used one from Adafruit that sells for less than $5 and works well (see [https://www.adafruit.com/product/1475](https://www.adafruit.com/product/1475)). You will need TRS (standard stereo) plugs or an adapter to go into the headphone and microphone jacks on the sound card. The card does not work with a TRRS (combination microphone / stereo headphone plug. You only need a microphone or other external sound source if you wish to use one. Otherwise you can use audio .wav files that you save on the Raspberry Pi. You still need the USB sound card for audio output, however.
 
@@ -218,6 +220,7 @@ Beyond the next release, there are several items on the added capabilities list 
 - Add a &quot;TUNING&quot; mode so the user can adjust type of triggering, triggering levels, and the servo max and min positions on the fly, while the program is running. This will make it easier to tune these parameters, since currently one must stop the program, change the settings, and then rerun the program to see the effects of any changes.
 - Add the ability to use .mp3 files. Simply playing MP3 files on a Raspberry Pi is easy, but they must be processed in real-time as a stream to drive the servo controller.
 - Use the timer function in PIR mode as a delay before re-triggering is allowed.
+- Find a way to run correctly on a Pi Zero
 
 I would welcome anyone who wanted to work on adding any of these advanced features.
 
