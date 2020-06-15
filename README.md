@@ -175,7 +175,7 @@ When you are using .wav files the software can determine when it has reached the
 
 The AMBIENT parameter is not currently used. It will be used in a future release.
 
-There is one other parameter in this section, the BUFFER\_SIZE used internally by the software. Do not change this value, leave it at 1024.
+There is one other parameter in this section, the BUFFER\_SIZE. This parameter is not currently used. 
 
 [PROP]
 
