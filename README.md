@@ -2,7 +2,7 @@
 Flexible Audio Servo Controller using Raspberry Pi (for talking skulls, etc.)
 Mike McGurrin
 
-Developed and tested on a Raspberry Pi Model 3 A+. I don't know if it will run on a Pi 2. It does not run correctly on a Pi Zero. (the servo will move, but the audio will not usually play. I suspect it simply isn't powerful enough to keep up). 
+Developed on a Raspberry Pi Model 3 A+ and tested on the 3 A+ and a Pi Zero W. Given that it runs on a Pi Zero, I believe it will run on any Pi. The orgiginal version had a code section in the audio processing that ran too slowly for the Pi Zero, but the loop and list processing has been replaced with using a numpy array and it now works on the Zero.
 
 # Introduction
 
