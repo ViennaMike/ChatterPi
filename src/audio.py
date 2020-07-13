@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun May 17 22:19:49 2020
-
 @author: Mike McGurrin
+Updated to improve speed and run on Pi Zero 7/13/2020
 """
 import pyaudio
 import wave
-import struct
 import time
 import atexit
+import numpy as np
 from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import Device, AngularServo
 from bandpassFilter import BPFilter
@@ -34,26 +34,16 @@ class AUDIO:
         def get_avg(data, channels):
             """Gets and returns the average volume for the frame (chunk).
             for stereo channels, only looks at the right channel (channel 1)"""
-            levels = []
-            length = len(data)
-        
-            if channels == 1:
-                for i in range(length//2):
-                    volume = abs(struct.unpack('<h', data[i:i+2])[0])
-                    levels.append(volume)
-            elif channels == 2:
-                for i in range(length//4):
-                    j = 4 * i + 2
-                    volume = abs(struct.unpack('<h', data[j:j+2])[0])
-                    levels.append(volume)
-            else:
-                raise ValueError("channels must be either 1 or 2")
+            levels = abs(np.frombuffer(data, dtype='<i2'))
             # Apply bandpass filter if STYLE=2
             if c.STYLE == 2:
-                filteredLevels = abs(self.bp.filter_data(levels))
-                avg_volume = sum(filteredLevels/len(filteredLevels))
-            else:
-                avg_volume = sum(levels)/len(levels)
+                levels = self.bp.filter_data(levels)
+            levels = np.absolute(levels)
+            if channels == 1:
+                avg_volume = sum(levels)//len(levels)
+            elif channels == 2:
+                rightLevels = levels[1::2]
+                avg_volume = sum(rightLevels)//len(rightLevels)
             return(avg_volume)
             
         def get_target(data, channels):
@@ -88,10 +78,9 @@ class AUDIO:
             """ overwrites left channel onto right channel for playback"""
             if channels != 2:
                 raise ValueError("channels must equal 2")
-            dataArray = bytearray(data)
-            for i in range(0,len(dataArray),4):
-                dataArray[i:i+2] = dataArray[i+2:i+4] 
-            data = bytes(dataArray)
+            levels = np.frombuffer(data, dtype='<i2')
+            levels[1::2] = levels[::2]
+            data = levels.tolist()
             return data
         
         def filesCallback(in_data, frame_count, time_info, status):
@@ -118,7 +107,7 @@ class AUDIO:
             self.streamAlias.close()
             if c.SOURCE == 'FILES':
                 wf.close()
-            self.jaw.value = None  
+            self.jaw.angle = None  
             
         def cleanup():
             normalEnd()
