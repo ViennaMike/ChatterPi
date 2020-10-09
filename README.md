@@ -2,7 +2,7 @@
 Flexible Audio Servo Controller using Raspberry Pi (for talking skulls, etc.)
 Mike McGurrin
 
-Developed on a Raspberry Pi Model 3 A+ and tested on the 3 A+ and a Pi Zero W. Given that it runs on a Pi Zero, I believe it will run on any Pi. The orgiginal version had a code section in the audio processing that ran too slowly for the Pi Zero, but the loop and list processing has been replaced with using a numpy array and it now works on the Zero.
+Developed on a Raspberry Pi Model 3 A+ and tested on the 3 A+ and a Pi Zero W. Given that it runs on a Pi Zero, I believe it will run on any Pi. The original version had a code section in the audio processing that ran too slowly for the Pi Zero, but the loop and list processing has been replaced with using a numpy array and it now works on the Zero.
 
 # Introduction
 
@@ -29,22 +29,25 @@ ChaterPi includes the following features
 - Audio can be from wav files or external input
 - Can send an output trigger to start another device when it is triggered
 - Output to light LED "eyes" (e.g., for a skull)
-
-Additional features are planned. 
+- Optionally can play ambient sound tracis between triggering events
+- GUI control panel for modifying the configuration parameters
+- Utility (via control panel) to maximize the volume of the audio files
 
 # Software Overview
 
 Knowledge or understanding of the software code is not required to operate or use the ChatterPi. Those who are not interested can skip this section of the documentation.
 
-The ChatterPi package consists of four Python 3 modules and one configuration file.
+The ChatterPi package consists of eight Python 3 modules and one configuration file. Six of the Python files make up the core of ChatterPi. The other two are the GUI control panel and a utility to maximize the volume of wave files without distorting the peak volume. 
 
-The configuration file, config.ini, holds all of the user selectable parameters, including which pins are used for which functions, whether the audio source is the microphone input or stored .wav files, which servo control mode should be used, and the servo threshold levels. The config.py program simply reads these values and makes them available in memory during runtime.
+The configuration file, config.ini, holds all of the user selectable parameters, including which pins are used for which functions, whether the audio source is the microphone input or stored .wav files, which servo control mode should be used, and the servo threshold levels. The config.py program simply reads these values and makes them available in memory during runtime. The config.ini file can either be edited directly or modfified using the ControlPanel GUI.
 
-Most of the processing occurs in the main.py and audio.py modules. The main.py program handles triggering (either my time, an external trigger such as a PIR, or immediately upon startup, with the method specified in the config.ini file. It uses the GPIO Zero and PiGPIO libraries to monitor the triggering sensor and send output to the output trigger and led pins. PiGPIO is used as the GPIO layer underneath GPIO Zero because it uses DMA control for the Pulse Width Modulation (PWM) control used to the control the servo. Some other libraries, including the default one used by GPIO Zero, use software PWM, which is adequate for tasks such as controlling the brightness of LEDs, but not precise enough for servo control.
+Most of the processing occurs in the control.py, tracks.py, and audio.py modules. The control.py program handles triggering when not using ambient tracks (either my time, an external trigger such as a PIR, or immediately upon startup, with the method specified in the config.ini file. It uses the GPIO Zero and PiGPIO libraries to monitor the triggering sensor and send output to the output trigger and led pins. PiGPIO is used as the GPIO layer underneath GPIO Zero because it uses DMA control for the Pulse Width Modulation (PWM) control used to the control the servo. Some other libraries, including the default one used by GPIO Zero, use software PWM, which is adequate for tasks such as controlling the brightness of LEDs, but not precise enough for servo control.
 
 Unless the triggering mode is START, the file enters an infinite loop waiting for either a timer to expire (TIMER mode) or the external trigger to be generated (PIR mode). The wait functions meet the requirements and during development, interrupt driven approaches interfered with the audio output, probably due to timing conflicts. In TIMER mode, the timer is restarted after either the audio file finishes playing (if the source is FILES) or after a configurable pre-set time (if the source is MICROPHONE).
 
 When triggered, an event handler is called that, depending upon the settings, sets off the TRIGGER\_OUT to trigger another prop or device and turns on the LED eyes or other low power device. Then, if the audio source is FILES, it will select the next .wav file to be played and call audio.py, passing the name of the .wav file to be played. If the audio source is MICROPHONE, audio.py is called without passing a file name. When the call to audio.py returns, the event handler turns the LED eyes off and returns.
+
+When AMBIENT is set to 'ON', the processing is similar, except that the triggers are monitored in audio.py DURING playback of the ambient sound file, so that the playback can be interrupted if a triggering event is heard. 
 
 Audio playback, audio analysis, and servo control are all performed by the audio.py module. It defines one class, AUDIO. When the audio.play function is called, it checks on whether the audio source is MICROPHONE or FILES and opens a PyAudio stream appropriately. The stream call runs in a separate thread (this is automatically handled by PyAudio). For each chunk of the input stream, a callback function is called. This callback function is where the audio stream volume is analyzed. The average volume for each chunk is calculated, and the servo is commanded to the appropriate position based on that average volume and the threshold levels that the user has specified in the config file. The wave library is used to read the wave files from storage, and the struct library is used to help deconstruct the wave data to calculate volume and to help to separately analyze the left and right channels for stereo files. The number of levels, the specific thresholds, and whether or not a bandpass filter is applied before calculating the volume is based on the STYLE setting set by the user in the config file. In addition to the official documentation, I found a slide presentation, [Introduction to PyAudio](https://slides.com/jeancruypenynck/introduction-to-pyaudio/embed#/), by Jean Cruypenynck to be very helpful.
 
@@ -212,18 +215,10 @@ This tells the operating system to run chatterpi at the end of the boot sequence
 
 # Project Roadmap
 
-ChatterPi is already fully functional, with a wide array of options However there several capabilities and convenience features that I plan to add. The next release will add:
+ChatterPi is already fully functional, with a wide array of options However there several capabilities and convenience features that could be added, including:
 
-- A stand-alone utility program with a graphical user interface for editing the configuration file.
-
-Beyond the next release, there are several items on the added capabilities list that may be added in one or more releases (one or two may even sneak into the next release):
-
-- Ambient tracks: Have ambient soundtracks that play between activations. This idea is borrowed from the Wee Little Talker.
-- A stand-alone utility program to allow the user to automatically maximize the volume levels on each .wav file to just below distortion and save the new files. This minimizes the need to re-tune the sensitivity settings and ensures that each .wav file has the same volume level, if desired.
-- Add a &quot;TUNING&quot; mode so the user can adjust type of triggering, triggering levels, and the servo max and min positions on the fly, while the program is running. This will make it easier to tune these parameters, since currently one must stop the program, change the settings, and then rerun the program to see the effects of any changes.
-- Add the ability to use .mp3 files. Simply playing MP3 files on a Raspberry Pi is easy, but they must be processed in real-time as a stream to drive the servo controller.
-- Use the timer function in PIR mode as a delay before re-triggering is allowed.
-- Find a way to run correctly on a Pi Zero
+- Add the ability to use .mp3 files. Simply playing MP3 files on a Raspberry Pi is easy, but they must be processed in real-time as a stream to drive the servo controller. 
+- Making the GUI more user friendly by providing options for many of the parameters via drop-down boxes. 
 
 I would welcome anyone who wanted to work on adding any of these advanced features.
 
