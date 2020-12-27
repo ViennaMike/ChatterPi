@@ -1,3 +1,9 @@
+"""
+Created on Sun May 17 22:19:49 2020
+Updated to fix bad calls to audio.play_audio Sat Dec 26 2020
+@author: Mike McGurrin
+"""
+
 from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import Device, Button, DigitalOutputDevice
 Device.pin_factory = PiGPIOFactory()
@@ -28,7 +34,7 @@ def event_handler():
     if c.SOURCE == 'FILES':
         tracks.play_vocal()
     else:
-        a.play_audio()
+        a.play_vocal_track
     if c.EYES == 'ON':
         eyesPin.off()
         
@@ -42,7 +48,7 @@ def controls():
                     triggerOut.on()
                 if c.EYES == 'ON':
                     eyesPin.on()
-                a.play_audio()  
+                a.play_vocal_track  
             elif c.PROP_TRIGGER == 'TIMER' or c.PROP_TRIGGER == 'PIR':              
                     while True:
                         if c.PROP_TRIGGER == 'PIR':
@@ -73,7 +79,7 @@ def controls():
                     triggerOut.on()
                 if c.EYES == 'ON':
                     eyesPin.on()
-                a.play_vocal() 
+                a.play_vocal_track() 
 
     except Exception as e:
         print(e)  
