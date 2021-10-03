@@ -13,41 +13,48 @@ from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import Device, AngularServo
 from bandpassFilter import BPFilter
 import config as c
+import control
 
+c.update()
 Device.pin_factory = PiGPIOFactory()
 
 class AUDIO:
     def __init__(self):
+        print("Initializing PyAudio...")
         self.p = pyaudio.PyAudio()
+        print("if you see ALSA error messages above, ignore them")
+        print("End of PyAudio initialization")
         self.jaw = AngularServo(c.JAW_PIN, min_angle=c.MIN_ANGLE, 
                     max_angle=c.MAX_ANGLE, initial_angle=None, 
                     min_pulse_width=c.SERVO_MIN/(1*10**6),
                     max_pulse_width=c.SERVO_MAX/(1*10**6))
         self.bp = BPFilter()
         
-    def stop(self):
-        self.streamAlias.stop_stream()  
-        self.jaw.close()
-    
-    def play_audio(self, filename=None):
+    def update_jaw(self):
+        self.jaw = AngularServo(c.JAW_PIN, min_angle=c.MIN_ANGLE, 
+                    max_angle=c.MAX_ANGLE, initial_angle=None, 
+                    min_pulse_width=c.SERVO_MIN/(1*10**6),
+                    max_pulse_width=c.SERVO_MAX/(1*10**6))        
+           
+    def play_vocal_track(self, filename=None):
         # Used for both threshold (Scary Terry style) and multi-level (jawduino style)
-        def get_avg(data, channels):
+        def get_avg(levels, channels):
             """Gets and returns the average volume for the frame (chunk).
             for stereo channels, only looks at the right channel (channel 1)"""
-            levels = abs(np.frombuffer(data, dtype='<i2'))
             # Apply bandpass filter if STYLE=2
             if c.STYLE == 2:
                 levels = self.bp.filter_data(levels)
             levels = np.absolute(levels)
             if channels == 1:
-                avg_volume = sum(levels)//len(levels)
+                avg_volume = np.sum(levels)//len(levels)
             elif channels == 2:
                 rightLevels = levels[1::2]
-                avg_volume = sum(rightLevels)//len(rightLevels)
+                avg_volume = np.sum(rightLevels)//len(rightLevels)
             return(avg_volume)
-            
+         
         def get_target(data, channels):
-            volume = get_avg(data, channels)
+            levels = abs(np.frombuffer(data, dtype='<i2'))
+            volume = get_avg(levels, channels)
             jawStep = (self.jaw.max_angle - self.jaw.min_angle) / 3
             if c.STYLE == 0:      # Scary Terry style single threshold
                 if volume > c.THRESHOLD: 
@@ -92,7 +99,7 @@ class AUDIO:
             if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
                 data = overwrite(data, channels)
             return (data, pyaudio.paContinue)  
-        
+           
         def micCallback(in_data, frame_count, time_info, status):
             channels = 1 # Microphone input is always monaural
             jawTarget = get_target(in_data, channels)
@@ -100,12 +107,12 @@ class AUDIO:
             # If only want left channel of input, duplicate left channel on right
             if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
                 in_data = overwrite(in_data, channels)
-            return (in_data, pyaudio.paContinue)          
-        
+            return (in_data, pyaudio.paContinue)     
+               
         def normalEnd():
-            self.streamAlias.stop_stream()
-            self.streamAlias.close()
-            if c.SOURCE == 'FILES':
+            self.stream.stop_stream()
+            self.stream.close()
+            if (c.SOURCE == 'FILES'):
                 wf.close()
             self.jaw.angle = None  
             
@@ -115,35 +122,80 @@ class AUDIO:
             self.jaw.close()
             
         try:
-            atexit.register(cleanup)           
-            # open stream using callback
+            atexit.register(cleanup)                      
             #Playing from wave file
             if c.SOURCE == 'FILES':
                 wf = wave.open(filename, 'rb')
-                file_sw = wf.getsampwidth()                    
-                stream = self.p.open(format=self.p.get_format_from_width(file_sw),
+                file_sw = wf.getsampwidth()                                    
+                self.stream = self.p.open(format=self.p.get_format_from_width(file_sw),
                             channels=wf.getnchannels(),
                             rate=wf.getframerate(),
+                            frames_per_buffer = c.BUFFER_SIZE,
                             output=True,
                             stream_callback=filesCallback)  
-                self.streamAlias = stream
-                while stream.is_active():
+                while self.stream.is_active():                
                     time.sleep(0.1)
+
             # Playing from microphone
             elif c.SOURCE == 'MICROPHONE':
-                stream = self.p.open(format=pyaudio.paInt16, channels=1,
-                            rate=48000, frames_per_buffer=1024,
+                self.stream = self.p.open(format=pyaudio.paInt16, channels=1,
+                            rate=48000, frames_per_buffer=c.BUFFER_SIZE,
                             input=True, output=True,
                             stream_callback=micCallback)  
-                self.streamAlias = stream
                 if c.PROP_TRIGGER != 'START':
                     time.sleep(c.MIC_TIME)
-                    stream.close()   
+                    self.stream.close()   
                 else:
-                    while stream.is_active():
-                        time.sleep(1.)
-            normalEnd()            
+                    while self.stream.is_active():
+                        time.sleep(1.)                                           
+            normalEnd() 
+        except (KeyboardInterrupt, SystemExit):
+            cleanup()               
+        
+    def play_ambient_track(self, filename=None):    
+        def ambientCallback(in_data, frame_count, time_info, status):
+            data = wf.readframes(frame_count)
+            return (data, pyaudio.paContinue)  
+               
+        def normalEnd():
+            self.stream.stop_stream()
+            self.stream.close()
+            wf.close()
+            
+        def cleanup():
+            normalEnd()
+            self.p.terminate()
+            self.jaw.close()
+            
+        try:
+            atexit.register(cleanup)                      
+            #Playing from ambient file
+            wf = wave.open(filename, 'rb')
+            file_sw = wf.getsampwidth()                                    
+            self.stream = self.p.open(format=self.p.get_format_from_width(file_sw),
+                        channels=wf.getnchannels(),
+                        rate=wf.getframerate(),
+                        frames_per_buffer = c.BUFFER_SIZE,
+                        output=True,
+                        stream_callback=ambientCallback)  
+
+            while self.stream.is_active():           
+                time.sleep(0.1)
+                # interrupt and play vocal track, moving jaw
+                if c.PROP_TRIGGER == 'PIR':
+                    if control.pir.is_pressed: 
+                        control.ambient_interrupt = True
+                        break 
+                if c.PROP_TRIGGER == 'TIMER':
+                    if time.time() > control.trigger_time: 
+                        control.ambient_interrupt = True
+                        break 
+            normalEnd()
+                    
         except (KeyboardInterrupt, SystemExit):
             cleanup()
+
+   
+        
 
             

@@ -20,7 +20,10 @@ Device.pin_factory = PiGPIOFactory()
 
 class AUDIO:
     def __init__(self):
+        print("Initializing PyAudio...")
         self.p = pyaudio.PyAudio()
+        print("if you see ALSA error messages above, ignore them")
+        print("End of PyAudio initialization")
         self.jaw = AngularServo(c.JAW_PIN, min_angle=c.MIN_ANGLE, 
                     max_angle=c.MAX_ANGLE, initial_angle=None, 
                     min_pulse_width=c.SERVO_MIN/(1*10**6),
@@ -43,12 +46,12 @@ class AUDIO:
                 levels = self.bp.filter_data(levels)
             levels = np.absolute(levels)
             if channels == 1:
-                avg_volume = sum(levels)//len(levels)
+                avg_volume = np.sum(levels)//len(levels)
             elif channels == 2:
                 rightLevels = levels[1::2]
-                avg_volume = sum(rightLevels)//len(rightLevels)
+                avg_volume = np.sum(rightLevels)//len(rightLevels)
             return(avg_volume)
-            
+         
         def get_target(data, channels):
             levels = abs(np.frombuffer(data, dtype='<i2'))
             volume = get_avg(levels, channels)
@@ -96,14 +99,14 @@ class AUDIO:
             if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
                 data = overwrite(data, channels)
             return (data, pyaudio.paContinue)  
-            
+           
         def micCallback(in_data, frame_count, time_info, status):
             channels = 1 # Microphone input is always monaural
             jawTarget = get_target(in_data, channels)
-            self.jaw.angle = jawTarget
-            # If only want left channel of input, duplicate left channel on right
-            if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
-                in_data = overwrite(in_data, channels)
+  
+  
+  
+  
             return (in_data, pyaudio.paContinue)     
                
         def normalEnd():
@@ -127,16 +130,17 @@ class AUDIO:
                 self.stream = self.p.open(format=self.p.get_format_from_width(file_sw),
                             channels=wf.getnchannels(),
                             rate=wf.getframerate(),
+                            frames_per_buffer = c.BUFFER_SIZE,
                             output=True,
                             stream_callback=filesCallback)  
-
                 while self.stream.is_active():                
                     time.sleep(0.1)
+
             # Playing from microphone
             elif c.SOURCE == 'MICROPHONE':
                 self.stream = self.p.open(format=pyaudio.paInt16, channels=1,
-                            rate=48000, frames_per_buffer=1024,
-                            input=True, output=True,
+                            rate=48000, frames_per_buffer=4096,
+                            input=True,
                             stream_callback=micCallback)  
                 if c.PROP_TRIGGER != 'START':
                     time.sleep(c.MIC_TIME)

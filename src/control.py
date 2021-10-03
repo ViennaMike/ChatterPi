@@ -34,7 +34,7 @@ def event_handler():
     if c.SOURCE == 'FILES':
         tracks.play_vocal()
     else:
-        a.play_vocal_track
+        a.play_vocal_track()
     if c.EYES == 'ON':
         eyesPin.off()
         
@@ -48,8 +48,8 @@ def controls():
                     triggerOut.on()
                 if c.EYES == 'ON':
                     eyesPin.on()
-                a.play_vocal_track  
-            elif c.PROP_TRIGGER == 'TIMER' or c.PROP_TRIGGER == 'PIR':              
+                a.play_vocal_track()  
+            elif c.PROP_TRIGGER == 'TIMER' or c.PROP_TRIGGER == 'PIR':         
                     while True:
                         if c.PROP_TRIGGER == 'PIR':
                             time.sleep(c.DELAY) 
