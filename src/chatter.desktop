@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=chatter.desktop
+# Exec=xterm -hold -e '/home/pi/ChatterPi/chatter.sh'
+Exec= /home/pi/ChatterPi/chatter.sh

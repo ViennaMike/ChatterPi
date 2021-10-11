@@ -6,7 +6,7 @@ Developed on a Raspberry Pi Model 3 A+ and Pi 4 and tested on the 4 and a Pi Zer
 
 To use ChatterPi, you can either download the source code, install all the necessary dependencies, and go from there OR you can download a pre-built Raspberry Pi image file to load onto a micro SD card and immediately go from there. 
 
-NOTE: As of 10/2/2021, the image files have not been uploaded. There will be two image files: chatterpiimg, which uses an older versin of the Raspberry OS and has been thoroughly tested on both a Pi Zero W and a Pi 4 and newchatterpimimg, which uses the latest version of the Raspberry OS, but has not been tested as thoroughly.  
+NOTE: As of 10/10/2021, the image files have not yet been uploaded. 
 
 # Introduction
 
