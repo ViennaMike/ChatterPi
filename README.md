@@ -6,7 +6,7 @@ Developed on a Raspberry Pi Model 3 A+ and Pi 4 and tested on the 4 and a Pi Zer
 
 To use ChatterPi, you can either download the source code, install all the necessary dependencies, and go from there OR you can download a pre-built Raspberry Pi image file to load onto a micro SD card and immediately go from there. 
 
-NOTE: As of 10/10/2021, the image files have not yet been uploaded. 
+The image file is too large to put on GitHub. It's called chat.img.gz, and can be found at https://drive.google.com/drive/folders/1njfqegJImeXq-ZoW_yuY0TCJ0bTiwWCA?usp=sharing.
 
 # Introduction
 
