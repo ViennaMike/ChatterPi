@@ -86,9 +86,12 @@ class AUDIO:
             if channels != 2:
                 raise ValueError("channels must equal 2")
             levels = np.frombuffer(data, dtype='<i2')
-            levels[1::2] = levels[::2]
-            data = levels.tolist()
-            return data
+            new_levels = np.copy(levels)
+            new_levels[1::2] = levels[::2]
+            # levels[1::2] = levels[::2]
+            # data = new_levels.tolist()
+            # return data
+            return new_levels
         
         def filesCallback(in_data, frame_count, time_info, status):
             data = wf.readframes(frame_count)
