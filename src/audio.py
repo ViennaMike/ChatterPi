@@ -3,6 +3,8 @@
 Created on Sun May 17 22:19:49 2020
 @author: Mike McGurrin
 Updated to improve speed and run on Pi Zero 7/13/2020
+Undated updates
+Updated to address buffer underrun errors 12/3/2023
 """
 import wave
 import time
