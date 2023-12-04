@@ -4,9 +4,9 @@ Created on Sun May 17 22:19:49 2020
 @author: Mike McGurrin
 Updated to improve speed and run on Pi Zero 7/13/2020
 """
-import pyaudio
 import wave
 import time
+import pyaudio
 import atexit
 import numpy as np
 from gpiozero.pins.pigpio import PiGPIOFactory
@@ -94,19 +94,28 @@ class AUDIO:
             return new_levels
         
         def filesCallback(in_data, frame_count, time_info, status):
+            nonlocal latest_time
             data = wf.readframes(frame_count)
             channels = wf.getnchannels()
-            jawTarget = get_target(data, channels)
-            self.jaw.angle = jawTarget
+            # Only proces jaw movements 50x per second, to avoid buffer overruns
+            now = time.monotonic()
+            if now - latest_time > 0.02:
+                latest_time = now   
+                jawTarget = get_target(data, channels)
+                self.jaw.angle = jawTarget
             # If only want left channel of input, duplicate left channel on right
             if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
                 data = overwrite(data, channels)
             return (data, pyaudio.paContinue)  
            
         def micCallback(in_data, frame_count, time_info, status):
+            nonlocal latest_time
             channels = 1 # Microphone input is always monaural
-            jawTarget = get_target(in_data, channels)
-            self.jaw.angle = jawTarget
+            # Only proces jaw movements 50x per second, to avoid buffer overruns
+            if now - latest_time > 0.02:
+                latest_time = now   
+                jawTarget = get_target(data, channels)
+                self.jaw.angle = jawTarget            
             # If only want left channel of input, duplicate left channel on right
             if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
                 in_data = overwrite(in_data, channels)
@@ -129,7 +138,10 @@ class AUDIO:
             #Playing from wave file
             if c.SOURCE == 'FILES':
                 wf = wave.open(filename, 'rb')
-                file_sw = wf.getsampwidth()                                    
+                file_sw = wf.getsampwidth()  
+                # New code to support only process jaw movements 50x per second
+                start_time = time.monotonic() 
+                latest_time = start_time                                 
                 self.stream = self.p.open(format=self.p.get_format_from_width(file_sw),
                             channels=wf.getnchannels(),
                             rate=wf.getframerate(),
@@ -141,6 +153,9 @@ class AUDIO:
 
             # Playing from microphone
             elif c.SOURCE == 'MICROPHONE':
+                # New code to support only process jaw movements 50x per second
+                start_time = time.monotonic() 
+                latest_time = start_time                  
                 self.stream = self.p.open(format=pyaudio.paInt16, channels=1,
                             rate=48000, frames_per_buffer=c.BUFFER_SIZE,
                             input=True, output=True,
