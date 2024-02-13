@@ -3,8 +3,6 @@
 Created on Sun May 17 22:19:49 2020
 @author: Mike McGurrin
 Updated to improve speed and run on Pi Zero 7/13/2020
-Undated updates
-Updated to address buffer underrun errors 12/3/2023
 """
 import wave
 import time
@@ -114,13 +112,11 @@ class AUDIO:
             nonlocal latest_time
             channels = 1 # Microphone input is always monaural
             # Only proces jaw movements 50x per second, to avoid buffer overruns
+            now = time.monotonic()
             if now - latest_time > 0.02:
                 latest_time = now   
-                jawTarget = get_target(data, channels)
+                jawTarget = get_target(in_data, channels)
                 self.jaw.angle = jawTarget            
-            # If only want left channel of input, duplicate left channel on right
-            if (channels == 2) and (c.OUTPUT_CHANNELS == 'LEFT'):
-                in_data = overwrite(in_data, channels)
             return (in_data, pyaudio.paContinue)     
                
         def normalEnd():

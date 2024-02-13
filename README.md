@@ -8,6 +8,9 @@ To use ChatterPi, you can either download the source code, install all the neces
 
 The image file is too large to put on GitHub. It's called chat.img.gz, and can be found at https://drive.google.com/drive/folders/1njfqegJImeXq-ZoW_yuY0TCJ0bTiwWCA?usp=sharing.
 
+# 2/13/2024 Update Notes
+The latest version for both the source code and the image file should do a far better job of preventing audio drop outs and buffer underrun errors. Please let me know if you still have these issues. Unfortunately, this introduced a bug if you are using a microphone for live input. This has been fixed in the source code, but not yet in the image file. If you plan to use the microphone, you'll need to do the install from the GitHub files. 
+
 # Introduction
 
 ChatterPi is a software package that turns a Raspberry Pi into an audio servo controller. In other words, the Pi outputs commands to control a servo based on the volume of the audio input. The input can be either stored audio files (in either mono or stereo .wav format) or from an external source, such as a microphone or line level input. One of the uses is to drive animatronic props, such as a skull or a talking bird.
