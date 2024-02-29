@@ -37,3 +37,4 @@ ChaterPi includes the following features
 - GUI control panel for modifying the configuration parameters
 - Utility (via control panel) to maximize the volume of the audio files
 
+If you use ChatterPi, I'd live to hear about it. Post a comment on my blog: https://www.mcgurrin.info/robots/690/
