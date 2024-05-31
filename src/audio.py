@@ -29,12 +29,26 @@ class AUDIO:
                     min_pulse_width=c.SERVO_MIN/(1*10**6),
                     max_pulse_width=c.SERVO_MAX/(1*10**6))
         self.bp = BPFilter()
+        # flipping MIN_ANGLE and MAX_ANGLE in settings changes direction of servo movement BUT
+        # must use unflipped values in calculating the amount of jaw movement
+        if c.MIN_ANGLE > c.MAX_ANGLE:
+            self.j_min = c.MIN_ANGLE
+            self.j_max = c.MAX_ANGLE
+        else:
+            self.j_min = c.MAX_ANGLE
+            self.j_max = c.MIN_ANGLE          
         
     def update_jaw(self):
         self.jaw = AngularServo(c.JAW_PIN, min_angle=c.MIN_ANGLE, 
                     max_angle=c.MAX_ANGLE, initial_angle=None, 
                     min_pulse_width=c.SERVO_MIN/(1*10**6),
-                    max_pulse_width=c.SERVO_MAX/(1*10**6))        
+                    max_pulse_width=c.SERVO_MAX/(1*10**6))
+        if c.MIN_ANGLE > c.MAX_ANGLE:
+            self.j_min = c.MIN_ANGLE
+            self.j_max = c.MAX_ANGLE
+        else:
+            self.j_min = c.MAX_ANGLE
+            self.j_max = c.MIN_ANGLE    
            
     def play_vocal_track(self, filename=None):
         # Used for both threshold (Scary Terry style) and multi-level (jawduino style)
@@ -55,30 +69,30 @@ class AUDIO:
         def get_target(data, channels):
             levels = abs(np.frombuffer(data, dtype='<i2'))
             volume = get_avg(levels, channels)
-            jawStep = (self.jaw.max_angle - self.jaw.min_angle) / 3
+            jawStep = (self.j_max - self.j_min) / 3
             if c.STYLE == 0:      # Scary Terry style single threshold
                 if volume > c.THRESHOLD: 
-                    jawTarget = self.jaw.min_angle
+                    jawTarget = self.j_max
                 else: 
-                    jawTarget = self.jaw.max_angle
+                    jawTarget = self.j_min
             elif c.STYLE == 1:     # Jawduino style multi-level or Wee Talker bandpss multi-level   
                 if volume > c.LEVEL3:
-                    jawTarget = self.jaw.min_angle
+                    jawTarget = self.j_max
                 elif volume > c.LEVEL2:
-                    jawTarget = self.jaw.min_angle + jawStep
+                    jawTarget = self.j_min + 2 * jawStep
                 elif volume > c.LEVEL1:
-                    jawTarget = self.jaw.min_angle + 2 * jawStep
+                    jawTarget = self.j_min + jawStep
                 else:
-                    jawTarget = self.jaw.max_angle
+                    jawTarget = self.j_min
             else:     # Jawduino style multi-level or Wee Talker bandpss multi-level   
                 if volume > c.FIlTERED_LEVEL3:
-                    jawTarget = self.jaw.min_angle
+                    jawTarget = self.j_max
                 elif volume > c.FIlTERED_LEVEL2:
-                    jawTarget = self.jaw.min_angle + jawStep
+                    jawTarget = self.j_min + 2 * jawStep
                 elif volume > c.FIlTERED_LEVEL1:
-                    jawTarget = self.jaw.min_angle + 2 * jawStep
+                    jawTarget = self.j_min + jawStep
                 else:
-                    jawTarget = self.jaw.max_angle   
+                    jawTarget = self.j_min   
             return jawTarget      
         
         def overwrite(data, channels):
